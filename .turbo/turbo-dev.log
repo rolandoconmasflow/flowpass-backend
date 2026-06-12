@@ -1,0 +1,30 @@
+
+> backend@1.0.0 dev /home/rolandoconmasflow/Proyectos/flowpass/apps/backend
+> nest start --watch
+
+[2J[3J[H[[90m3:08:32 PM[0m] Starting compilation in watch mode...
+
+[[90m3:08:37 PM[0m] Found 0 errors. Watching for file changes.
+
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at ExpressAdapter.listen (/home/rolandoconmasflow/Proyectos/flowpass/node_modules/.pnpm/@nestjs+platform-express@10.0.0_@nestjs+common@10.0.0_@nestjs+core@10.0.0/node_modules/@nestjs/platform-express/adapters/express-adapter.js:88:32)
+    at /home/rolandoconmasflow/Proyectos/flowpass/node_modules/.pnpm/@nestjs+core@10.0.0_@nestjs+common@10.0.0_@nestjs+platform-express@10.0.0_reflect-metadata@0.1.14_rxjs@7.8.1/node_modules/@nestjs/core/nest-application.js:177:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (/home/rolandoconmasflow/Proyectos/flowpass/node_modules/.pnpm/@nestjs+core@10.0.0_@nestjs+common@10.0.0_@nestjs+platform-express@10.0.0_reflect-metadata@0.1.14_rxjs@7.8.1/node_modules/@nestjs/core/nest-application.js:167:16)
+    at async bootstrap (/home/rolandoconmasflow/Proyectos/flowpass/apps/backend/src/main.ts:49:3) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v22.20.0
+ ELIFECYCLE  Command failed.

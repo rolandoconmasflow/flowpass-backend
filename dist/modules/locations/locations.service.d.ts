@@ -1,0 +1,102 @@
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
+import { CreateLocationDto, UpdateLocationDto } from '../../dtos/location.dto';
+export declare class LocationsService {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    findAll(): Promise<(import("@prisma/client/runtime/library").GetResult<{
+        id: string;
+        merchantId: string;
+        name: string;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        openingHours: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }, unknown> & {})[]>;
+    findOne(id: string): Promise<(import("@prisma/client/runtime/library").GetResult<{
+        id: string;
+        merchantId: string;
+        name: string;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        openingHours: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }, unknown> & {}) | null>;
+    findNearby(lat: number, lng: number, radiusKm?: number): Promise<{
+        distance: number;
+        merchant: import("@prisma/client/runtime/library").GetResult<{
+            id: string;
+            name: string;
+            slug: string;
+            description: string | null;
+            logoUrl: string | null;
+            levelsEnabled: boolean;
+            commissionRate: number | null;
+            stripeAccountId: string | null;
+            ownerId: string;
+            category: import("@prisma/client").MerchantCategory;
+            createdAt: Date;
+            updatedAt: Date;
+        }, unknown> & {};
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        merchantId: string;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        openingHours: Prisma.JsonValue;
+    }[]>;
+    private haversine;
+    private toRad;
+    create(data: CreateLocationDto): Promise<import("@prisma/client/runtime/library").GetResult<{
+        id: string;
+        merchantId: string;
+        name: string;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        openingHours: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }, unknown> & {}>;
+    update(id: string, data: UpdateLocationDto): Promise<import("@prisma/client/runtime/library").GetResult<{
+        id: string;
+        merchantId: string;
+        name: string;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        openingHours: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }, unknown> & {}>;
+    remove(id: string): Promise<import("@prisma/client/runtime/library").GetResult<{
+        id: string;
+        merchantId: string;
+        name: string;
+        address: string | null;
+        city: string | null;
+        country: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        openingHours: Prisma.JsonValue | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }, unknown> & {}>;
+}

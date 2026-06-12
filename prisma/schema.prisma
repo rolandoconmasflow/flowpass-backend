@@ -1,0 +1,933 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  MERCHANT_OWNER
+  MERCHANT_STAFF
+  CUSTOMER
+}
+
+enum LoyaltyProgramType {
+  POINTS
+  VISITS
+  STAMPS
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum QRCodeType {
+  LOCATION_CHECKIN
+  PROMOTION
+  CUSTOMER_CARD
+}
+
+enum WalletProvider {
+  APPLE
+  GOOGLE
+  SAMSUNG
+  INTERNAL
+}
+
+enum WalletPassStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  TWO_FOR_ONE
+  FREE_ITEM
+  CUSTOM
+}
+
+enum RedemptionMode {
+  IN_STORE
+  ONLINE
+  BOTH
+}
+
+enum CouponStatus {
+  CLAIMED
+  REDEEMED
+  EXPIRED
+  CANCELLED
+}
+
+enum RedemptionChannel {
+  IN_STORE
+  ONLINE
+  ADMIN_PANEL
+  STAFF_APP
+}
+
+enum VisitSource {
+  QR_CHECKIN
+  COUPON_REDEMPTION
+  MANUAL
+  WALLET
+}
+
+enum NotificationType {
+  PROMOTION
+  COUPON
+  REWARD
+  REMINDER
+  LOCATION
+  SYSTEM
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum RedemptionStatus {
+  PENDING
+  REDEEMED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  phone        String?  @unique
+  passwordHash String?
+  name         String?
+  role         UserRole @default(CUSTOMER)
+
+  customerProfile  CustomerProfile?
+  ownedMerchants   Merchant[]       @relation("MerchantOwner")
+  staffMemberships MerchantStaff[]
+  devices          Device[]
+  notifications    Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CustomerProfile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  displayName String?
+  birthday    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  memberships       Membership[]
+  visits            Visit[]
+  coupons           Coupon[]
+  rewardRedemptions RewardRedemption[]
+  achievements      CustomerAchievement[]
+  referralCode      ReferralCode?
+  referredBy        Referral[]          @relation("ReferredCustomer")
+  customerMissions  CustomerMission[]
+  raffleEntries     RaffleEntry[]
+  raffleWins        RaffleWinner[]
+  tickets           Ticket[]
+  reservations      Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LoyaltyLevel {
+  id          String   @id @default(cuid())
+  merchantId  String
+  name        String
+  minPoints   Int      @default(0)
+  minVisits   Int      @default(0)
+  color       String?  @default("#64748b")
+  badgeUrl    String?
+  isSystem    Boolean  @default(true)
+  skinType    String   @default("SYSTEM")
+  skinConfig  Json?
+  benefits    Json?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  merchant    Merchant    @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  memberships Membership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([merchantId, name])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  merchantId  String
+  name        String
+  description String?
+  iconUrl     String?
+  criteria    Json?
+  points      Int      @default(0)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  earnedBy CustomerAchievement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CustomerAchievement {
+  id            String   @id @default(cuid())
+  customerId    String
+  achievementId String
+  earnedAt      DateTime @default(now())
+
+  customer    CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  achievement Achievement     @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, achievementId])
+}
+
+model ReferralCode {
+  id         String   @id @default(cuid())
+  customerId String   @unique
+  code       String   @unique
+  usedCount  Int      @default(0)
+
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  referrals Referral[]
+
+  createdAt DateTime @default(now())
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  referralCodeId  String
+  referredId      String
+  merchantId      String
+  rewardGiven     Boolean  @default(false)
+  rewardPoints    Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  referralCode ReferralCode    @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  referred     CustomerProfile @relation("ReferredCustomer", fields: [referredId], references: [id], onDelete: Cascade)
+  merchant     Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model Merchant {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  description    String?
+  logoUrl        String?
+  levelsEnabled  Boolean  @default(false)
+  commissionRate Float?   @default(5.0)
+  stripeAccountId String?
+  ownerId        String
+
+  owner User @relation("MerchantOwner", fields: [ownerId], references: [id])
+
+  locations         MerchantLocation[]
+  staff             MerchantStaff[]
+  loyaltyPrograms   LoyaltyProgram[]
+  memberships       Membership[]
+  visits            Visit[]
+  rewards           Reward[]
+  rewardRedemptions RewardRedemption[]
+  promotions        Promotion[]
+  coupons           Coupon[]
+  qrCodes           QRCode[]
+  events            Event[]
+  notifications     Notification[]
+  loyaltyLevels     LoyaltyLevel[]
+  achievements      Achievement[]
+  referralCodes     Referral[]
+  missions          Mission[]
+  raffles           Raffle[]
+  menuCategories    MenuCategory[]
+  tables            Table[]
+  reservations      Reservation[]
+  subscription      MerchantSubscription?
+
+  category MerchantCategory @default(OTHER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MerchantLocation {
+  id           String  @id @default(cuid())
+  merchantId   String
+  name         String
+  address      String?
+  city         String?
+  country      String?
+  latitude     Float?
+  longitude    Float?
+  openingHours Json?
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  visits     Visit[]
+  promotions Promotion[]
+  events     Event[]
+  qrCodes    QRCode[]
+  coupons    Coupon[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MerchantStaff {
+  id         String   @id @default(cuid())
+  merchantId String
+  userId     String
+  role       UserRole @default(MERCHANT_STAFF)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([merchantId, userId])
+}
+
+model LoyaltyProgram {
+  id                      String             @id @default(cuid())
+  merchantId              String
+  name                    String
+  type                    LoyaltyProgramType
+  description             String?
+  pointsPerVisit          Int                @default(1)
+  visitsRequiredForReward Int?
+  isActive                Boolean            @default(true)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  memberships Membership[]
+  rewards     Reward[]
+  promotions  Promotion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Membership {
+  id               String           @id @default(cuid())
+  customerId       String
+  merchantId       String
+  loyaltyProgramId String?
+  points           Int              @default(0)
+  visitsCount      Int              @default(0)
+  status           MembershipStatus @default(ACTIVE)
+  level            String?          @default("BRONZE")
+  levelId          String?
+  joinedAt         DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  customer       CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant       Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  loyaltyProgram LoyaltyProgram? @relation(fields: [loyaltyProgramId], references: [id])
+  levelInfo      LoyaltyLevel?   @relation(fields: [levelId], references: [id])
+
+  visits            Visit[]
+  coupons           Coupon[]
+  walletPasses      WalletPass[]
+  rewardRedemptions RewardRedemption[]
+
+  @@unique([customerId, merchantId])
+
+  @@index([merchantId, points])
+  @@index([merchantId, status])
+}
+
+model Visit {
+  id           String      @id @default(cuid())
+  membershipId String
+  merchantId   String
+  locationId   String?
+  customerId   String
+  source       VisitSource @default(QR_CHECKIN)
+  qrCodeId     String?
+  createdAt    DateTime    @default(now())
+
+  membership Membership        @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  merchant   Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location   MerchantLocation? @relation(fields: [locationId], references: [id])
+  customer   CustomerProfile   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  qrCode     QRCode?           @relation(fields: [qrCodeId], references: [id])
+
+  @@index([merchantId, createdAt])
+  @@index([customerId, createdAt])
+}
+
+model Reward {
+  id               String    @id @default(cuid())
+  merchantId       String
+  loyaltyProgramId String?
+  title            String
+  description      String?
+  requiredPoints   Int?
+  requiredVisits   Int?
+  validFrom        DateTime?
+  validTo          DateTime?
+  isActive         Boolean   @default(true)
+
+  merchant       Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  loyaltyProgram LoyaltyProgram? @relation(fields: [loyaltyProgramId], references: [id])
+
+  redemptions RewardRedemption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RewardRedemption {
+  id           String           @id @default(cuid())
+  rewardId     String
+  membershipId String
+  customerId   String
+  merchantId   String
+  redeemedAt   DateTime?
+  status       RedemptionStatus @default(PENDING)
+
+  reward     Reward          @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  membership Membership      @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  customer   CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant   Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model Promotion {
+  id                   String         @id @default(cuid())
+  merchantId           String
+  locationId           String?
+  loyaltyProgramId     String?
+  title                String
+  description          String?
+  imageUrl             String?
+  priceText            String?
+  discountType         DiscountType   @default(CUSTOM)
+  discountValue        Float?
+  maxClaims            Int?
+  maxClaimsPerCustomer Int?
+  redemptionMode       RedemptionMode @default(IN_STORE)
+  claimStartsAt        DateTime?
+  claimEndsAt          DateTime?
+  validFrom            DateTime?
+  validTo              DateTime?
+  termsAndConditions   String?
+  isActive             Boolean        @default(true)
+
+  merchant       Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location       MerchantLocation? @relation(fields: [locationId], references: [id])
+  loyaltyProgram LoyaltyProgram?   @relation(fields: [loyaltyProgramId], references: [id])
+
+  coupons Coupon[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Coupon {
+  id                String             @id @default(cuid())
+  promotionId       String
+  customerId        String
+  merchantId        String
+  locationId        String?
+  membershipId      String?
+  code              String             @unique
+  qrCodeValue       String?
+  status            CouponStatus       @default(CLAIMED)
+  claimedAt         DateTime           @default(now())
+  expiresAt         DateTime?
+  redeemedAt        DateTime?
+  redemptionChannel RedemptionChannel?
+
+  promotion  Promotion         @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  customer   CustomerProfile   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  merchant   Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location   MerchantLocation? @relation(fields: [locationId], references: [id])
+  membership Membership?       @relation(fields: [membershipId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId, status])
+  @@index([status])
+}
+
+model QRCode {
+  id         String     @id @default(cuid())
+  merchantId String
+  locationId String?
+  code       String     @unique
+  type       QRCodeType @default(LOCATION_CHECKIN)
+  isActive   Boolean    @default(true)
+
+  merchant Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location MerchantLocation? @relation(fields: [locationId], references: [id])
+
+  visits Visit[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WalletPass {
+  id           String           @id @default(cuid())
+  membershipId String
+  provider     WalletProvider
+  externalId   String?
+  status       WalletPassStatus @default(ACTIVE)
+  skinVersion  Int              @default(0)
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Device {
+  id        String         @id @default(cuid())
+  userId    String
+  platform  DevicePlatform
+  pushToken String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, pushToken])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  merchantId String?
+  title      String
+  body       String
+  type       NotificationType
+  sentAt     DateTime?
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant Merchant? @relation(fields: [merchantId], references: [id])
+
+  @@index([userId, readAt])
+}
+
+enum EventCategory {
+  MUSIC
+  NIGHTLIFE
+  FOOD_DRINK
+  ARTS_CULTURE
+  SPORTS_FITNESS
+  BUSINESS
+  COMMUNITY
+  EDUCATION
+  FASHION
+  HEALTH_WELLNESS
+  TECHNOLOGY
+  TRAVEL_OUTDOOR
+  KIDS_FAMILY
+  CHARITY_CAUSES
+  OTHER
+}
+
+enum TicketStatus {
+  PURCHASED
+  USED
+  CANCELLED
+  REFUNDED
+}
+
+model Event {
+  id             String         @id @default(cuid())
+  merchantId     String
+  locationId     String?
+  title          String
+  description    String?
+  imageUrl       String?
+  category       EventCategory  @default(OTHER)
+  ticketPrice    Decimal        @default(0)
+  capacity       Int            @default(0)
+  availableSeats Int            @default(0)
+  saleStartsAt   DateTime?
+  saleEndsAt     DateTime?
+  startsAt       DateTime?
+  endsAt         DateTime?
+  isActive       Boolean        @default(true)
+
+  merchant Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  location MerchantLocation? @relation(fields: [locationId], references: [id])
+
+  tickets Ticket[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([merchantId, isActive])
+  @@index([startsAt])
+}
+
+model Ticket {
+  id           String       @id @default(cuid())
+  eventId      String
+  customerId   String
+  code         String       @unique
+  status       TicketStatus @default(PURCHASED)
+  purchaseDate DateTime     @default(now())
+  usedAt       DateTime?
+  usedBy       String?
+  paymentRef   String?
+  paymentAmount Decimal?
+  commissionAmount Decimal?
+  customerEmail String?
+
+  event    Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([eventId, status])
+  @@index([code])
+}
+
+enum MissionType {
+  VISITS
+  POINTS
+  REFERRALS
+  STREAK
+  CUSTOM
+}
+
+enum MissionRepeat {
+  ONCE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model Mission {
+  id          String      @id @default(cuid())
+  merchantId  String
+  title       String
+  description String?
+  type        MissionType @default(VISITS)
+  repeat      MissionRepeat @default(ONCE)
+  goalValue   Int         @default(1)
+  rewardPoints Int        @default(0)
+  rewardCouponId String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  isActive    Boolean     @default(true)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  customerMissions CustomerMission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CustomerMission {
+  id         String   @id @default(cuid())
+  customerId String
+  missionId  String
+  progress   Int      @default(0)
+  completed  Boolean  @default(false)
+  completedAt DateTime?
+
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  mission  Mission         @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, missionId])
+}
+
+model Raffle {
+  id          String   @id @default(cuid())
+  merchantId  String
+  title       String
+  description String?
+  prize       String
+  prizeImage  String?
+  entryCost   Int      @default(0)
+  maxEntries  Int?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  drawnAt     DateTime?
+  isActive    Boolean  @default(true)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  entries    RaffleEntry[]
+  winners    RaffleWinner[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RaffleEntry {
+  id        String   @id @default(cuid())
+  raffleId  String
+  customerId String
+  entries   Int      @default(1)
+  createdAt DateTime @default(now())
+
+  raffle   Raffle          @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([raffleId, customerId])
+}
+
+model RaffleWinner {
+  id         String   @id @default(cuid())
+  raffleId   String
+  customerId String
+  position   Int      @default(1)
+  claimedAt  DateTime?
+
+  raffle   Raffle          @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([raffleId, customerId])
+}
+
+// ─── Fase 12: Menú Digital ───────────────────────────────────────────
+
+enum DietaryTag {
+  GLUTEN_FREE
+  VEGAN
+  VEGETARIAN
+  KOSHER
+  HALAL
+  LACTOSE_FREE
+  SUGAR_FREE
+  ORGANIC
+  SPICY
+  CHEF_RECOMMENDED
+}
+
+model MenuCategory {
+  id         String      @id @default(cuid())
+  merchantId String
+  name       String
+  sortOrder  Int
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  merchant Merchant    @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  items    MenuItem[]
+}
+
+model MenuItem {
+  id               String      @id @default(cuid())
+  categoryId       String
+  name             String
+  description      String?
+  price            Decimal
+  currency         String      @default("ARS")
+  imageUrl         String?
+  imageEnhancedUrl String?
+  isAvailable      Boolean     @default(true)
+  sortOrder        Int
+  isBestseller     Boolean     @default(false)
+  dietaryTags      DietaryTag[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  category     MenuCategory          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  translations MenuItemTranslation[]
+}
+
+model MenuItemTranslation {
+  id         String   @id @default(cuid())
+  menuItemId String
+  language   String   // es, en, pt, fr, it, de
+  name       String
+  description String?
+
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, language])
+}
+
+// ─── Categorías de Comercio ──────────────────────────────────────────
+
+enum MerchantCategory {
+  RESTAURANT
+  CAFE
+  FAST_FOOD
+  BAR
+  BAKERY
+  ICE_CREAM
+  GROCERY
+  CONVENIENCE
+  PHARMACY
+  CLOTHING
+  ELECTRONICS
+  BEAUTY
+  SPORTS
+  HOME
+  AUTOMOTIVE
+  ENTERTAINMENT
+  HEALTH
+  EDUCATION
+  TRAVEL
+  PETS
+  BOOKS
+  PROFESSIONAL_SERVICES
+  OTHER
+}
+
+// ─── Fase 13: Reserva de Mesas ──────────────────────────────────────
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+model Table {
+  id         String   @id @default(cuid())
+  merchantId String
+  label      String   // ej: "Mesa 5", "VIP-2", "Barra"
+  capacity   Int      // cantidad de personas
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  merchant    Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+}
+
+model Reservation {
+  id            String            @id @default(cuid())
+  merchantId    String
+  customerId    String
+  tableId       String?
+  date          DateTime          // fecha de la reserva
+  timeSlot      String            // ej: "20:00", "21:30"
+  guests        Int
+  status        ReservationStatus @default(PENDING)
+  notes         String?
+  customerName  String?
+  customerPhone String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  customer CustomerProfile @relation(fields: [customerId], references: [id])
+  table    Table?           @relation(fields: [tableId], references: [id])
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+// ─── Fase Landing: Waitlist ─────────────────────────────────────
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+// ─── Reset de contraseña ───────────────────────────────────────────
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
+// ─── Fase 0: Sistema de Suscripciones (SaaS) ────────────────────
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  TRIALING
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model SubscriptionPlan {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  interval      String
+  intervalCount Int
+  price         Decimal  @db.Decimal(10, 2)
+  currency      String   @default("ARS")
+  stripePriceId String?
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  subscriptions MerchantSubscription[]
+
+  @@map("subscription_plans")
+}
+
+model MerchantSubscription {
+  id                   String             @id @default(cuid())
+  merchantId           String             @unique
+  planId               String
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  trialEndsAt          DateTime?
+  cancelledAt          DateTime?
+  stripeSubscriptionId String?
+  stripeCustomerId     String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  merchant Merchant         @relation(fields: [merchantId], references: [id])
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  @@map("merchant_subscriptions")
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  subscriptionId        String
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("ARS")
+  status                PaymentStatus @default(PENDING)
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
+  invoiceUrl            String?
+  periodStart           DateTime
+  periodEnd             DateTime
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+
+  subscription MerchantSubscription @relation(fields: [subscriptionId], references: [id])
+
+  @@map("payments")
+}
