@@ -45,3 +45,8 @@ export class ResetPasswordDto {
   @MaxLength(100)
   password!: string;
 }
+
+export class VerifyEmailDto {
+  @IsString()
+  token!: string;
+}

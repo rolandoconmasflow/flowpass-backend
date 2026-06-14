@@ -10,6 +10,7 @@ import {
   UpdateProfileDto,
   ForgotPasswordDto,
   ResetPasswordDto,
+  VerifyEmailDto,
 } from '../../dtos/auth.dto';
 
 const COOKIE_OPTIONS = {
@@ -86,5 +87,20 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.password);
+  }
+
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verify email with token' })
+  @ApiResponse({ status: 200, description: 'Email verified.' })
+  @ApiResponse({ status: 400, description: 'Invalid token.' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
+  }
+
+  @Post('resend-verification')
+  @ApiOperation({ summary: 'Resend verification email' })
+  @ApiResponse({ status: 200, description: 'Verification email resent.' })
+  async resendVerification(@Body() body: { email: string }) {
+    return this.authService.resendVerificationEmail(body.email);
   }
 }

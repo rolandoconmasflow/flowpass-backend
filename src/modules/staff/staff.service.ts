@@ -8,6 +8,31 @@ export class StaffService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  async addStaffByEmail(merchantId: string, email: string, role: UserRole = UserRole.MERCHANT_STAFF) {
+    const merchant = await this.prisma.merchant.findUnique({ where: { id: merchantId } });
+    if (!merchant) throw new NotFoundException('Merchant not found');
+
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new NotFoundException('User with this email not found');
+
+    const staffCount = await this.prisma.merchantStaff.count({
+      where: { merchantId, role: UserRole.MERCHANT_STAFF },
+    });
+    if (staffCount >= 3) {
+      throw new BadRequestException('Maximum 3 staff members per merchant');
+    }
+
+    const existing = await this.prisma.merchantStaff.findUnique({
+      where: { merchantId_userId: { merchantId, userId: user.id } },
+    });
+    if (existing) throw new BadRequestException('User already staff at this merchant');
+
+    return this.prisma.merchantStaff.create({
+      data: { merchantId, userId: user.id, role },
+      include: { user: { select: { id: true, name: true, email: true, role: true } } },
+    });
+  }
+
   async addStaff(merchantId: string, userId: string, role: UserRole = UserRole.MERCHANT_STAFF) {
     const merchant = await this.prisma.merchant.findUnique({ where: { id: merchantId } });
     if (!merchant) throw new NotFoundException('Merchant not found');
@@ -27,11 +52,15 @@ export class StaffService {
   }
 
   async listStaff(merchantId: string) {
-    return this.prisma.merchantStaff.findMany({
+    const staff = await this.prisma.merchantStaff.findMany({
       where: { merchantId },
       include: { user: { select: { id: true, name: true, email: true, role: true } } },
       orderBy: { createdAt: 'desc' },
     });
+    const staffCount = await this.prisma.merchantStaff.count({
+      where: { merchantId, role: UserRole.MERCHANT_STAFF },
+    });
+    return { staff, count: staffCount, limit: 3 };
   }
 
   async removeStaff(merchantId: string, userId: string) {

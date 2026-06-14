@@ -2,6 +2,7 @@ import { ConflictException, Injectable, UnauthorizedException, BadRequestExcepti
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 import { JwtPayload } from './jwt-payload.interface';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly mailService: MailService,
   ) {}
 
   private signToken(
@@ -47,10 +49,15 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const user = await this.usersService.create({
       ...userData,
       name: userData.name || userData.email,
+      emailVerificationToken: verificationToken,
     });
+
+    this.mailService.sendVerificationEmail(user.email!, verificationToken);
+
     const sanitizedUser = this.usersService.sanitizeUser(user);
 
     return {
@@ -120,6 +127,42 @@ export class AuthService {
     return this.signToken({ id: user.id, email: user.email, role: user.role }, activeMerchantId);
   }
 
+  async verifyEmail(token: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { emailVerificationToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Token de verificación inválido');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, emailVerificationToken: null },
+    });
+
+    return { message: 'Correo verificado exitosamente.' };
+  }
+
+  async resendVerificationEmail(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return { message: 'Si el email existe, recibirás un link de verificación.' };
+    }
+    if (user.emailVerified) {
+      return { message: 'El correo ya está verificado.' };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerificationToken: token },
+    });
+
+    this.mailService.sendVerificationEmail(email, token);
+    return { message: 'Si el email existe, recibirás un link de verificación.' };
+  }
+
   async forgotPassword(email: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) return { message: 'Si el email existe, recibirás un link de recuperación.' };
@@ -131,9 +174,9 @@ export class AuthService {
       data: { email, token, expiresAt },
     });
 
-    // En producción acá se enviaría el email con nodemailer
-    // Por ahora devolvemos el token en la respuesta para testing
-    return { message: 'Si el email existe, recibirás un link de recuperación.', token };
+    this.mailService.sendResetPasswordEmail(email, token);
+
+    return { message: 'Si el email existe, recibirás un link de recuperación.' };
   }
 
   async resetPassword(token: string, newPassword: string) {

@@ -14,6 +14,21 @@ export class UsersService {
     });
   }
 
+  async findAll() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async findById(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
@@ -29,7 +44,7 @@ export class UsersService {
     });
   }
 
-  async create(data: CreateUserDto) {
+  async create(data: CreateUserDto & { emailVerificationToken?: string }) {
     const existingUser = await this.findByEmail(data.email);
 
     if (existingUser) {
@@ -49,6 +64,7 @@ export class UsersService {
         passwordHash: hashedPassword,
         name: data.name,
         role: role as UserRole,
+        emailVerificationToken: data.emailVerificationToken,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

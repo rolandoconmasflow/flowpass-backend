@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
-import { IsString, IsEnum } from 'class-validator';
+import { IsString, IsEnum, IsEmail } from 'class-validator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -12,8 +12,8 @@ class AddStaffDto {
   @IsString()
   merchantId!: string;
 
-  @IsString()
-  userId!: string;
+  @IsEmail()
+  email!: string;
 
   @IsEnum(UserRole)
   role!: UserRole;
@@ -35,7 +35,7 @@ export class StaffController {
   @Post()
   @ApiOperation({ summary: 'Add staff to merchant' })
   async addStaff(@Body() dto: AddStaffDto) {
-    return this.staffService.addStaff(dto.merchantId, dto.userId, dto.role);
+    return this.staffService.addStaffByEmail(dto.merchantId, dto.email, dto.role);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -102,12 +102,14 @@ enum RedemptionStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String?  @unique
-  phone        String?  @unique
-  passwordHash String?
-  name         String?
-  role         UserRole @default(CUSTOMER)
+  id                     String    @id @default(cuid())
+  email                  String?   @unique
+  phone                  String?   @unique
+  passwordHash           String?
+  name                   String?
+  role                   UserRole  @default(CUSTOMER)
+  emailVerified          Boolean   @default(false)
+  emailVerificationToken String?
 
   customerProfile  CustomerProfile?
   ownedMerchants   Merchant[]       @relation("MerchantOwner")

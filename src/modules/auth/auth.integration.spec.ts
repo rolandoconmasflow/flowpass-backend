@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from '../database/prisma.service';
+import { MailService } from '../mail/mail.service';
 
 describe('Auth (integration)', () => {
   let app: INestApplication;
@@ -33,6 +34,11 @@ describe('Auth (integration)', () => {
     },
   };
 
+  const mockMailService = {
+    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    sendResetPasswordEmail: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
@@ -42,6 +48,7 @@ describe('Auth (integration)', () => {
         { provide: UsersService, useValue: mockUsersService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: MailService, useValue: mockMailService },
       ],
     }).compile();
 

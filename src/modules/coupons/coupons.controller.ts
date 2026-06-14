@@ -74,7 +74,7 @@ export class CouponsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.MERCHANT_OWNER)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.MERCHANT_OWNER, UserRole.MERCHANT_STAFF)
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel a coupon' })
   @ApiResponse({ status: 200, description: 'Coupon cancelled.' })

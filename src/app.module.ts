@@ -39,6 +39,7 @@ import { MarketingModule } from './modules/marketing/marketing.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { BillingModule } from './modules/billing/billing.module';
     UploadsModule,
     LoggerModule,
     BillingModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
