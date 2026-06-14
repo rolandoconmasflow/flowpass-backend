@@ -51,8 +51,8 @@ export declare class RafflesController {
         updatedAt: Date;
         description: string | null;
         merchantId: string;
-        isActive: boolean;
         title: string;
+        isActive: boolean;
         startsAt: Date | null;
         endsAt: Date | null;
         prize: string;

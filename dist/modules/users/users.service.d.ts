@@ -5,6 +5,15 @@ export declare class UsersService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     findByEmail(email: string): Promise<User | null>;
+    findAll(): Promise<{
+        id: string;
+        email: string | null;
+        name: string | null;
+        role: UserRole;
+        emailVerified: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
     findById(id: string): Promise<{
         id: string;
         email: string | null;
@@ -14,13 +23,17 @@ export declare class UsersService {
         createdAt: Date;
         updatedAt: Date;
     } | null>;
-    create(data: CreateUserDto): Promise<import("@prisma/client/runtime/library").GetResult<{
+    create(data: CreateUserDto & {
+        emailVerificationToken?: string;
+    }): Promise<import("@prisma/client/runtime/library").GetResult<{
         id: string;
         email: string | null;
         phone: string | null;
         passwordHash: string | null;
         name: string | null;
         role: UserRole;
+        emailVerified: boolean;
+        emailVerificationToken: string | null;
         createdAt: Date;
         updatedAt: Date;
     }, unknown> & {}>;
@@ -31,6 +44,8 @@ export declare class UsersService {
         passwordHash: string | null;
         name: string | null;
         role: UserRole;
+        emailVerified: boolean;
+        emailVerificationToken: string | null;
         createdAt: Date;
         updatedAt: Date;
     }, unknown> & {}>;

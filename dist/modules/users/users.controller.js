@@ -21,22 +21,46 @@ const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
 const client_1 = require("@prisma/client");
 const user_dto_1 = require("../../dtos/user.dto");
+const class_validator_1 = require("class-validator");
+class UpdateRoleDto {
+    role;
+}
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.UserRole),
+    __metadata("design:type", String)
+], UpdateRoleDto.prototype, "role", void 0);
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
         this.usersService = usersService;
     }
+    findAll() {
+        return this.usersService.findAll();
+    }
     create(userData) {
         return this.usersService.create(userData);
     }
-    findOne(id) {
-        return this.usersService.findById(id);
+    updateRole(id, dto) {
+        return this.usersService.update(id, { role: dto.role });
     }
     getProfile(req) {
         return this.usersService.findById(req.user.id);
     }
+    findOne(id) {
+        return this.usersService.findById(id);
+    }
 };
 exports.UsersController = UsersController;
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.SUPER_ADMIN),
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'List all users (SUPER_ADMIN only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Users list.' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.UserRole.SUPER_ADMIN),
@@ -49,15 +73,17 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "create", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Get)(':id'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get user by ID' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'User found.' }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.SUPER_ADMIN),
+    (0, common_1.Patch)(':id/role'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update user role (SUPER_ADMIN only)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Role updated.' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, UpdateRoleDto]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "findOne", null);
+], UsersController.prototype, "updateRole", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('me'),
@@ -68,6 +94,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get user by ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'User found.' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "findOne", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('Users'),
     (0, swagger_1.ApiBearerAuth)(),

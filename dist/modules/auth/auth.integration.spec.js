@@ -10,6 +10,7 @@ const users_service_1 = require("../users/users.service");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
 const prisma_service_1 = require("../database/prisma.service");
+const mail_service_1 = require("../mail/mail.service");
 describe('Auth (integration)', () => {
     let app;
     const mockUsersService = {
@@ -30,6 +31,10 @@ describe('Auth (integration)', () => {
             findFirst: jest.fn().mockResolvedValue(null),
         },
     };
+    const mockMailService = {
+        sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+        sendResetPasswordEmail: jest.fn().mockResolvedValue(undefined),
+    };
     beforeAll(async () => {
         const module = await testing_1.Test.createTestingModule({
             imports: [passport_1.PassportModule.register({ defaultStrategy: 'jwt' })],
@@ -39,6 +44,7 @@ describe('Auth (integration)', () => {
                 { provide: users_service_1.UsersService, useValue: mockUsersService },
                 { provide: jwt_1.JwtService, useValue: mockJwtService },
                 { provide: prisma_service_1.PrismaService, useValue: mockPrismaService },
+                { provide: mail_service_1.MailService, useValue: mockMailService },
             ],
         }).compile();
         app = module.createNestApplication();

@@ -161,6 +161,8 @@ export declare class CouponsController {
                 passwordHash: string | null;
                 name: string | null;
                 role: UserRole;
+                emailVerified: boolean;
+                emailVerificationToken: string | null;
                 createdAt: Date;
                 updatedAt: Date;
             }, unknown> & {};
@@ -221,6 +223,8 @@ export declare class CouponsController {
                 passwordHash: string | null;
                 name: string | null;
                 role: UserRole;
+                emailVerified: boolean;
+                emailVerificationToken: string | null;
                 createdAt: Date;
                 updatedAt: Date;
             }, unknown> & {};
@@ -295,6 +299,8 @@ export declare class CouponsController {
                 passwordHash: string | null;
                 name: string | null;
                 role: UserRole;
+                emailVerified: boolean;
+                emailVerificationToken: string | null;
                 createdAt: Date;
                 updatedAt: Date;
             }, unknown> & {};
@@ -371,6 +377,8 @@ export declare class CouponsController {
                     passwordHash: string | null;
                     name: string | null;
                     role: UserRole;
+                    emailVerified: boolean;
+                    emailVerificationToken: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                 }, unknown> & {};
@@ -459,6 +467,8 @@ export declare class CouponsController {
                     passwordHash: string | null;
                     name: string | null;
                     role: UserRole;
+                    emailVerified: boolean;
+                    emailVerificationToken: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                 }, unknown> & {};
@@ -536,6 +546,8 @@ export declare class CouponsController {
                     passwordHash: string | null;
                     name: string | null;
                     role: UserRole;
+                    emailVerified: boolean;
+                    emailVerificationToken: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                 }, unknown> & {};

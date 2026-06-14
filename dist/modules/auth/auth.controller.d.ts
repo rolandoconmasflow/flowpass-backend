@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RequestWithUser } from './request-with-user.interface';
-import { RegisterDto, LoginDto, UpdateProfileDto, ForgotPasswordDto, ResetPasswordDto } from '../../dtos/auth.dto';
+import { RegisterDto, LoginDto, UpdateProfileDto, ForgotPasswordDto, ResetPasswordDto, VerifyEmailDto } from '../../dtos/auth.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -33,12 +33,16 @@ export declare class AuthController {
     }>;
     forgotPassword(dto: ForgotPasswordDto): Promise<{
         message: string;
-        token?: undefined;
-    } | {
-        message: string;
-        token: string;
     }>;
     resetPassword(dto: ResetPasswordDto): Promise<{
+        message: string;
+    }>;
+    verifyEmail(dto: VerifyEmailDto): Promise<{
+        message: string;
+    }>;
+    resendVerification(body: {
+        email: string;
+    }): Promise<{
         message: string;
     }>;
 }

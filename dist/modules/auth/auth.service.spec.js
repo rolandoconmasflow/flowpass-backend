@@ -6,6 +6,7 @@ const jwt_1 = require("@nestjs/jwt");
 const auth_service_1 = require("./auth.service");
 const users_service_1 = require("../users/users.service");
 const prisma_service_1 = require("../database/prisma.service");
+const mail_service_1 = require("../mail/mail.service");
 const bcrypt = require("bcrypt");
 describe('AuthService', () => {
     let authService;
@@ -38,6 +39,10 @@ describe('AuthService', () => {
             findFirst: jest.fn().mockResolvedValue(null),
         },
     };
+    const mockMailService = {
+        sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+        sendResetPasswordEmail: jest.fn().mockResolvedValue(undefined),
+    };
     beforeEach(async () => {
         const module = await testing_1.Test.createTestingModule({
             providers: [
@@ -45,6 +50,7 @@ describe('AuthService', () => {
                 { provide: users_service_1.UsersService, useValue: mockUsersService },
                 { provide: jwt_1.JwtService, useValue: mockJwtService },
                 { provide: prisma_service_1.PrismaService, useValue: mockPrismaService },
+                { provide: mail_service_1.MailService, useValue: mockMailService },
             ],
         }).compile();
         authService = module.get(auth_service_1.AuthService);

@@ -2,7 +2,7 @@ import { UserRole } from '@prisma/client';
 import { StaffService } from './staff.service';
 declare class AddStaffDto {
     merchantId: string;
-    userId: string;
+    email: string;
     role: UserRole;
 }
 declare class UpdateStaffRoleDto {
@@ -25,20 +25,24 @@ export declare class StaffController {
         role: UserRole;
         createdAt: Date;
     }, unknown> & {}>;
-    listStaff(merchantId: string): Promise<({
-        user: {
+    listStaff(merchantId: string): Promise<{
+        staff: ({
+            user: {
+                id: string;
+                name: string | null;
+                email: string | null;
+                role: UserRole;
+            };
+        } & import("@prisma/client/runtime/library").GetResult<{
             id: string;
-            name: string | null;
-            email: string | null;
+            merchantId: string;
+            userId: string;
             role: UserRole;
-        };
-    } & import("@prisma/client/runtime/library").GetResult<{
-        id: string;
-        merchantId: string;
-        userId: string;
-        role: UserRole;
-        createdAt: Date;
-    }, unknown> & {})[]>;
+            createdAt: Date;
+        }, unknown> & {})[];
+        count: number;
+        limit: number;
+    }>;
     removeStaff(merchantId: string, userId: string): Promise<{
         success: boolean;
     }>;

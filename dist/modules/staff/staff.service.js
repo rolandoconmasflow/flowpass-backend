@@ -20,6 +20,29 @@ let StaffService = StaffService_1 = class StaffService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async addStaffByEmail(merchantId, email, role = client_1.UserRole.MERCHANT_STAFF) {
+        const merchant = await this.prisma.merchant.findUnique({ where: { id: merchantId } });
+        if (!merchant)
+            throw new common_1.NotFoundException('Merchant not found');
+        const user = await this.prisma.user.findUnique({ where: { email } });
+        if (!user)
+            throw new common_1.NotFoundException('User with this email not found');
+        const staffCount = await this.prisma.merchantStaff.count({
+            where: { merchantId, role: client_1.UserRole.MERCHANT_STAFF },
+        });
+        if (staffCount >= 3) {
+            throw new common_1.BadRequestException('Maximum 3 staff members per merchant');
+        }
+        const existing = await this.prisma.merchantStaff.findUnique({
+            where: { merchantId_userId: { merchantId, userId: user.id } },
+        });
+        if (existing)
+            throw new common_1.BadRequestException('User already staff at this merchant');
+        return this.prisma.merchantStaff.create({
+            data: { merchantId, userId: user.id, role },
+            include: { user: { select: { id: true, name: true, email: true, role: true } } },
+        });
+    }
     async addStaff(merchantId, userId, role = client_1.UserRole.MERCHANT_STAFF) {
         const merchant = await this.prisma.merchant.findUnique({ where: { id: merchantId } });
         if (!merchant)
@@ -38,11 +61,15 @@ let StaffService = StaffService_1 = class StaffService {
         });
     }
     async listStaff(merchantId) {
-        return this.prisma.merchantStaff.findMany({
+        const staff = await this.prisma.merchantStaff.findMany({
             where: { merchantId },
             include: { user: { select: { id: true, name: true, email: true, role: true } } },
             orderBy: { createdAt: 'desc' },
         });
+        const staffCount = await this.prisma.merchantStaff.count({
+            where: { merchantId, role: client_1.UserRole.MERCHANT_STAFF },
+        });
+        return { staff, count: staffCount, limit: 3 };
     }
     async removeStaff(merchantId, userId) {
         const staff = await this.prisma.merchantStaff.findUnique({

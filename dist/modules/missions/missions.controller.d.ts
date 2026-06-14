@@ -49,16 +49,16 @@ export declare class MissionsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        type: import("@prisma/client").MissionType;
         merchantId: string;
-        isActive: boolean;
         title: string;
+        type: import("@prisma/client").MissionType;
+        isActive: boolean;
+        rewardPoints: number;
         repeat: import("@prisma/client").MissionRepeat;
+        goalValue: number;
+        rewardCouponId: string | null;
         startsAt: Date | null;
         endsAt: Date | null;
-        goalValue: number;
-        rewardPoints: number;
-        rewardCouponId: string | null;
     }[]>;
     findById(id: string): Promise<{
         customerMissions: (import("@prisma/client/runtime/library").GetResult<{

@@ -14,16 +14,19 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../database/prisma.service");
 const users_service_1 = require("../users/users.service");
+const mail_service_1 = require("../mail/mail.service");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 let AuthService = class AuthService {
     usersService;
     jwtService;
     prisma;
-    constructor(usersService, jwtService, prisma) {
+    mailService;
+    constructor(usersService, jwtService, prisma, mailService) {
         this.usersService = usersService;
         this.jwtService = jwtService;
         this.prisma = prisma;
+        this.mailService = mailService;
     }
     signToken(user, activeMerchantId) {
         const payload = {
@@ -39,10 +42,13 @@ let AuthService = class AuthService {
         if (existingUser) {
             throw new common_1.ConflictException('Email already registered');
         }
+        const verificationToken = crypto.randomBytes(32).toString('hex');
         const user = await this.usersService.create({
             ...userData,
             name: userData.name || userData.email,
+            emailVerificationToken: verificationToken,
         });
+        this.mailService.sendVerificationEmail(user.email, verificationToken);
         const sanitizedUser = this.usersService.sanitizeUser(user);
         return {
             user: sanitizedUser,
@@ -99,6 +105,35 @@ let AuthService = class AuthService {
         }
         return this.signToken({ id: user.id, email: user.email, role: user.role }, activeMerchantId);
     }
+    async verifyEmail(token) {
+        const user = await this.prisma.user.findFirst({
+            where: { emailVerificationToken: token },
+        });
+        if (!user) {
+            throw new common_1.BadRequestException('Token de verificación inválido');
+        }
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: true, emailVerificationToken: null },
+        });
+        return { message: 'Correo verificado exitosamente.' };
+    }
+    async resendVerificationEmail(email) {
+        const user = await this.usersService.findByEmail(email);
+        if (!user) {
+            return { message: 'Si el email existe, recibirás un link de verificación.' };
+        }
+        if (user.emailVerified) {
+            return { message: 'El correo ya está verificado.' };
+        }
+        const token = crypto.randomBytes(32).toString('hex');
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerificationToken: token },
+        });
+        this.mailService.sendVerificationEmail(email, token);
+        return { message: 'Si el email existe, recibirás un link de verificación.' };
+    }
     async forgotPassword(email) {
         const user = await this.usersService.findByEmail(email);
         if (!user)
@@ -108,7 +143,8 @@ let AuthService = class AuthService {
         await this.prisma.passwordResetToken.create({
             data: { email, token, expiresAt },
         });
-        return { message: 'Si el email existe, recibirás un link de recuperación.', token };
+        this.mailService.sendResetPasswordEmail(email, token);
+        return { message: 'Si el email existe, recibirás un link de recuperación.' };
     }
     async resetPassword(token, newPassword) {
         const resetToken = await this.prisma.passwordResetToken.findUnique({
@@ -134,6 +170,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [users_service_1.UsersService,
         jwt_1.JwtService,
-        prisma_service_1.PrismaService])
+        prisma_service_1.PrismaService,
+        mail_service_1.MailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

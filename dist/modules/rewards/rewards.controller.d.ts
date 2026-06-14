@@ -44,9 +44,9 @@ export declare class RewardsController {
         updatedAt: Date;
         description: string | null;
         merchantId: string;
+        title: string;
         isActive: boolean;
         loyaltyProgramId: string | null;
-        title: string;
         requiredPoints: number | null;
         requiredVisits: number | null;
         validFrom: Date | null;

@@ -46,8 +46,8 @@ export declare class LocationsService {
             createdAt: Date;
             updatedAt: Date;
         }, unknown> & {};
-        id: string;
         name: string;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
         merchantId: string;

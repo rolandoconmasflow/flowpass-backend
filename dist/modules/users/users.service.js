@@ -23,6 +23,20 @@ let UsersService = class UsersService {
             where: { email },
         });
     }
+    async findAll() {
+        return this.prisma.user.findMany({
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                emailVerified: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
     async findById(id) {
         return this.prisma.user.findUnique({
             where: { id },
@@ -50,6 +64,7 @@ let UsersService = class UsersService {
                 passwordHash: hashedPassword,
                 name: data.name,
                 role: role,
+                emailVerificationToken: data.emailVerificationToken,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },

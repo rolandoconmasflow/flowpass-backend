@@ -1,4 +1,0 @@
-
-> backend@1.0.0 build /home/rolandoconmasflow/Proyectos/flowpass/apps/backend
-> tsc -p tsconfig.json
-

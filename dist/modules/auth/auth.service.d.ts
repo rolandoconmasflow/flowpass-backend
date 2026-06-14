@@ -1,6 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 type RegisterInput = {
     email: string;
     password: string;
@@ -15,7 +16,8 @@ export declare class AuthService {
     private readonly usersService;
     private readonly jwtService;
     private readonly prisma;
-    constructor(usersService: UsersService, jwtService: JwtService, prisma: PrismaService);
+    private readonly mailService;
+    constructor(usersService: UsersService, jwtService: JwtService, prisma: PrismaService, mailService: MailService);
     private signToken;
     registerUser(userData: RegisterInput): Promise<{
         user: {
@@ -39,12 +41,14 @@ export declare class AuthService {
         [x: string]: unknown;
     }>;
     signTokenWithMerchant(userId: string, activeMerchantId: string): Promise<string>;
+    verifyEmail(token: string): Promise<{
+        message: string;
+    }>;
+    resendVerificationEmail(email: string): Promise<{
+        message: string;
+    }>;
     forgotPassword(email: string): Promise<{
         message: string;
-        token?: undefined;
-    } | {
-        message: string;
-        token: string;
     }>;
     resetPassword(token: string, newPassword: string): Promise<{
         message: string;

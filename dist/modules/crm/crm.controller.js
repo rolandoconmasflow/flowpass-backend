@@ -15,7 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CrmController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
+const client_1 = require("@prisma/client");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_decorator_1 = require("../auth/roles.decorator");
+const roles_guard_1 = require("../auth/roles.guard");
 const crm_service_1 = require("./crm.service");
 let CrmController = class CrmController {
     crmService;
@@ -42,7 +45,8 @@ let CrmController = class CrmController {
 };
 exports.CrmController = CrmController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.MERCHANT_OWNER, client_1.UserRole.MERCHANT_STAFF),
     (0, common_1.Get)('customers/:merchantId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get customers with filters' }),
     __param(0, (0, common_1.Param)('merchantId')),
@@ -58,7 +62,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CrmController.prototype, "getCustomers", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.MERCHANT_OWNER, client_1.UserRole.MERCHANT_STAFF),
     (0, common_1.Get)('segments/:merchantId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get customer segments' }),
     __param(0, (0, common_1.Param)('merchantId')),
@@ -67,7 +72,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CrmController.prototype, "getSegments", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.MERCHANT_OWNER, client_1.UserRole.MERCHANT_STAFF),
     (0, common_1.Get)('timeline/:customerId/:merchantId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get customer timeline' }),
     __param(0, (0, common_1.Param)('customerId')),

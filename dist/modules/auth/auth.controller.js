@@ -56,6 +56,12 @@ let AuthController = class AuthController {
     async resetPassword(dto) {
         return this.authService.resetPassword(dto.token, dto.password);
     }
+    async verifyEmail(dto) {
+        return this.authService.verifyEmail(dto.token);
+    }
+    async resendVerification(body) {
+        return this.authService.resendVerificationEmail(body.email);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -133,6 +139,25 @@ __decorate([
     __metadata("design:paramtypes", [auth_dto_1.ResetPasswordDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "resetPassword", null);
+__decorate([
+    (0, common_1.Post)('verify-email'),
+    (0, swagger_1.ApiOperation)({ summary: 'Verify email with token' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Email verified.' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid token.' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [auth_dto_1.VerifyEmailDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyEmail", null);
+__decorate([
+    (0, common_1.Post)('resend-verification'),
+    (0, swagger_1.ApiOperation)({ summary: 'Resend verification email' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Verification email resent.' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "resendVerification", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('Auth'),
     (0, common_1.Controller)('auth'),

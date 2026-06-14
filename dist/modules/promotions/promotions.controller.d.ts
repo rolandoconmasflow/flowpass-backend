@@ -131,12 +131,12 @@ export declare class PromotionsController {
         updatedAt: Date;
         description: string | null;
         merchantId: string;
-        isActive: boolean;
-        loyaltyProgramId: string | null;
         title: string;
+        isActive: boolean;
+        locationId: string | null;
+        loyaltyProgramId: string | null;
         validFrom: Date | null;
         validTo: Date | null;
-        locationId: string | null;
         imageUrl: string | null;
         discountType: import("@prisma/client").DiscountType;
         discountValue: number | null;

@@ -185,6 +185,8 @@ export declare class CouponsService {
                 passwordHash: string | null;
                 name: string | null;
                 role: import("@prisma/client").UserRole;
+                emailVerified: boolean;
+                emailVerificationToken: string | null;
                 createdAt: Date;
                 updatedAt: Date;
             }, unknown> & {};
@@ -245,6 +247,8 @@ export declare class CouponsService {
                 passwordHash: string | null;
                 name: string | null;
                 role: import("@prisma/client").UserRole;
+                emailVerified: boolean;
+                emailVerificationToken: string | null;
                 createdAt: Date;
                 updatedAt: Date;
             }, unknown> & {};
@@ -319,6 +323,8 @@ export declare class CouponsService {
                 passwordHash: string | null;
                 name: string | null;
                 role: import("@prisma/client").UserRole;
+                emailVerified: boolean;
+                emailVerificationToken: string | null;
                 createdAt: Date;
                 updatedAt: Date;
             }, unknown> & {};
@@ -395,6 +401,8 @@ export declare class CouponsService {
                     passwordHash: string | null;
                     name: string | null;
                     role: import("@prisma/client").UserRole;
+                    emailVerified: boolean;
+                    emailVerificationToken: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                 }, unknown> & {};
@@ -483,6 +491,8 @@ export declare class CouponsService {
                     passwordHash: string | null;
                     name: string | null;
                     role: import("@prisma/client").UserRole;
+                    emailVerified: boolean;
+                    emailVerificationToken: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                 }, unknown> & {};
@@ -560,6 +570,8 @@ export declare class CouponsService {
                     passwordHash: string | null;
                     name: string | null;
                     role: import("@prisma/client").UserRole;
+                    emailVerified: boolean;
+                    emailVerificationToken: string | null;
                     createdAt: Date;
                     updatedAt: Date;
                 }, unknown> & {};

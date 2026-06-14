@@ -24,7 +24,7 @@ const subscription_guard_1 = require("../billing/subscription.guard");
 const staff_service_1 = require("./staff.service");
 class AddStaffDto {
     merchantId;
-    userId;
+    email;
     role;
 }
 __decorate([
@@ -32,9 +32,9 @@ __decorate([
     __metadata("design:type", String)
 ], AddStaffDto.prototype, "merchantId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
-], AddStaffDto.prototype, "userId", void 0);
+], AddStaffDto.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsEnum)(client_1.UserRole),
     __metadata("design:type", String)
@@ -52,7 +52,7 @@ let StaffController = class StaffController {
         this.staffService = staffService;
     }
     async addStaff(dto) {
-        return this.staffService.addStaff(dto.merchantId, dto.userId, dto.role);
+        return this.staffService.addStaffByEmail(dto.merchantId, dto.email, dto.role);
     }
     async listStaff(merchantId) {
         return this.staffService.listStaff(merchantId);

@@ -46,6 +46,7 @@ const marketing_module_1 = require("./modules/marketing/marketing.module");
 const reservations_module_1 = require("./modules/reservations/reservations.module");
 const uploads_module_1 = require("./modules/uploads/uploads.module");
 const billing_module_1 = require("./modules/billing/billing.module");
+const mail_module_1 = require("./modules/mail/mail.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -87,6 +88,7 @@ exports.AppModule = AppModule = __decorate([
             uploads_module_1.UploadsModule,
             logger_module_1.LoggerModule,
             billing_module_1.BillingModule,
+            mail_module_1.MailModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard }],
